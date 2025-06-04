@@ -213,7 +213,7 @@ function __fish_ros2_print_srvs
     end
 end
 
-function __fish_ros2_print_actions
+function __fish_ros2_print_action_interfaces
     $__fish_ros2 interface list --only-actions \
         | tail -n +2 \
         | while read --delimiter / package ignore action
@@ -233,6 +233,13 @@ function __fish_ros2_print_topics
     $__fish_ros2 topic list --show-types \
         | while read topic type
         printf '%s\t%s\n' $topic (string sub --start 2 --end -1 $type) # remove "[" and "]"
+    end
+end
+
+function __fish_ros2_print_actions
+    $__fish_ros2 action list --show-types \
+        | while read action type
+        printf '%s\t%s\n' $action (string sub --start 2 --end -1 $type) # remove "[" and "]"
     end
 end
 
@@ -334,6 +341,48 @@ for i in (seq (count $ros2_action_commands))
     set -l description $ros2_action_command_descriptions[$i]
     $C -n "__fish_seen_subcommand_from action; and not __fish_seen_subcommand_from $ros2_action_commands" -a $command -d $description
 end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand action info" -a "(__fish_ros2_print_actions)"
+$C -n "__fish_seen_subcommand_with_subsubcommand action send_goal; and not __fish_ros2_cmd_in_array ($__fish_ros2 action list)" -a "(__fish_ros2_print_actions)"
+
+# Get the action type, assuming the last cmdline token is the action name
+function __fish_ros2_get_action_type
+    set -l cmd (commandline -poc)
+    set -l action $cmd[-1]
+    set -l action_and_type (ros2 action list --show-type | grep "$action")
+    set -l tokens (string split " " -- $action_and_type)
+    echo (string sub --start 2 --end -1 $tokens[-1]) # remove "[" and "]"
+    return 0
+end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand action send_goal; and __fish_seen_nth_arg_from -1 ($__fish_ros2 action list)" -a "(__fish_ros2_get_action_type)"
+
+# Check if ros2 topic pub is called with the last token on the command line being action type and the second to last one the action name
+function __fish_seen_ros2_action_send_goal_with_action_name_and_type
+    if not __fish_seen_subcommand_with_subsubcommand action send_goal
+        return 1
+    end
+
+    set -l cmd (commandline -poc)
+    if not contains -- $cmd[-2] ($__fish_ros2 action list)
+        return 1
+    end
+    return 0
+end
+
+# Get the goal proto, assuming the last cmdline token is the action type and the second to last one is the action name
+function __fish_ros2_get_goal_proto
+    set -l cmd (commandline -poc)
+    set -l action_type $cmd[-1]
+    set -l action_type_proto ($__fish_ros2 interface proto --no-quotes $action_type)
+    if not test -n "$action_type_proto"
+        return 1
+    end
+    echo (proto_output_to_yaml $action_type_proto)
+    return 0
+end
+
+$C -n __fish_seen_ros2_action_send_goal_with_action_name_and_type -a "(__fish_ros2_get_goal_proto)"
 
 # ros2 bag ----------------------------------------------------------------------------------------
 # ros2 bag --help
