@@ -4,6 +4,7 @@ Integrate ROS2 with the fish-shell, and add interactive goodies to make you robo
 You may get most of the functionality (and possibly better completion of a command's options) by simply putting `register-python-argcomplete --shell fish ros2 | source ` into your `config.fish`. However, this package has quite a few other advantages, see the list below. You can still add the argcomplete-line into your config, but then the completions may get a bit more crowded.
 
 - Complete message/request/goal type (`ros2 topic pub`, `ros2 service call`, `ros2 action send_goal`) by simply pressing tab after completing the topic/service name
+- Complete interface type (`ros2 interface show`, `ros2 interface proto`) or available packages, (`ros2 interface package`) by simply pressing tab after writing the subcommand
 - Complete message/request/goal structure (`ros2 topic pub`, `ros2 service call`, `ros2 action send_goal`) with all their fields and default values, making it simple to publish/call complex message/service-request types. Note that fish of version 4.0
   ![image](https://github.com/user-attachments/assets/54e15b0d-c452-4906-a975-128db0e1116f)
 

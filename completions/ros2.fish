@@ -197,6 +197,16 @@ function __fish_ros2_print_launch_file_args --argument-names pkg launch_file
     end
 end
 
+function __fish_ros2_print_interfaces
+    set -l list ($__fish_ros2 interface list)
+    for line in $list
+        set -l first_char (string sub --length 1 -- $line)
+        if test $first_char = ' '
+            echo (string trim -- $line)
+        end
+    end
+end
+
 function __fish_ros2_print_msgs
     $__fish_ros2 interface list --only-msgs \
         | tail -n +2 \
@@ -547,6 +557,10 @@ for i in (seq (count $ros2_interface_commands))
     set -l description $ros2_interface_command_descriptions[$i]
     $C -n "__fish_seen_subcommand_from interface; and not __fish_seen_subcommand_from $ros2_interface_commands" -a $command -d $description
 end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand interface show" -a "(__fish_ros2_print_interfaces)"
+$C -n "__fish_seen_subcommand_with_subsubcommand interface proto" -a "(__fish_ros2_print_interfaces)"
+$C -n "__fish_seen_subcommand_with_subsubcommand interface package" -a "($__fish_ros2 interface packages)"
 
 # ros2 launch -------------------------------------------------------------------------------------
 $C -n "__fish_seen_subcommand_from launch" -s d -l debug -d "Put the launch system in debug mode, provides more verbose output"
