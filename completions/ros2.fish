@@ -672,6 +672,27 @@ for i in (seq (count $ros2_param_commands))
     $C -n "__fish_seen_subcommand_from param; and not __fish_seen_subcommand_from $ros2_param_commands" -a $command -d $description
 end
 
+$C -n "__fish_seen_subcommand_with_subsubcommand param dump" -a "(__fish_ros2_print_nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param load" -a "(__fish_ros2_print_nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param list" -a "(__fish_ros2_print_nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param describe; and not __fish_ros2_cmd_in_array (__fish_ros2_print_nodes)" -a "(__fish_ros2_print_nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param get; and not __fish_ros2_cmd_in_array (__fish_ros2_print_nodes)" -a "(__fish_ros2_print_nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param set; and not __fish_ros2_cmd_in_array (__fish_ros2_print_nodes)" -a "(__fish_ros2_print_nodes)"
+
+# Get the parameters, assuming the last cmdline token is the node name
+function __fish_ros2_get_node_params
+    set -l cmd (commandline -poc)
+    set -l node $cmd[-1]
+
+    set -l output ($__fish_ros2 param list $node 2>/dev/null | string trim)
+    printf '%s\n' $output
+    return 0
+end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand param describe; and __fish_seen_nth_arg_from -1 (__fish_ros2_print_nodes)" -a "(__fish_ros2_get_node_params)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param get; and __fish_seen_nth_arg_from -1 (__fish_ros2_print_nodes)" -a "(__fish_ros2_get_node_params)"
+$C -n "__fish_seen_subcommand_with_subsubcommand param set; and __fish_seen_nth_arg_from -1 (__fish_ros2_print_nodes)" -a "(__fish_ros2_get_node_params)"
+
 # ros2 pkg ----------------------------------------------------------------------------------------
 # ros2 pkg --help
 # usage: ros2 pkg [-h] Call `ros2 pkg <command> -h` for more detailed usage. ...
